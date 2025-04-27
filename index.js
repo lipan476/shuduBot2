@@ -65,6 +65,54 @@ app.post('/webhook', async (req, res) => {
     }
 });
 
+
+// ✅ 玩家通关后上传分数
+app.post('/upload-score', async (req, res) => {
+    const { user_id, score, inline_message_id } = req.body;
+
+    if (!user_id || !score || !inline_message_id) {
+        console.error("❌ 参数不完整");
+        return res.status(400).json({ error: "Missing parameters" });
+    }
+
+    try {
+        const response = await axios.post(`https://api.telegram.org/bot${BOT_TOKEN}/setGameScore`, {
+            user_id,
+            score,
+            inline_message_id
+        });
+        console.log("✅ 成功上传分数:", response.data);
+        res.json(response.data);
+    } catch (error) {
+        console.error("❌ 上传分数失败:", error.response ? error.response.data : error.message);
+        res.status(500).json({ error: "Failed to upload score" });
+    }
+});
+
+
+// ✅ 玩家查看排行榜
+app.post('/get-highscores', async (req, res) => {
+    const { user_id, inline_message_id } = req.body;
+
+    if (!user_id || !inline_message_id) {
+        console.error("❌ 参数不完整");
+        return res.status(400).json({ error: "Missing parameters" });
+    }
+
+    try {
+        const response = await axios.post(`https://api.telegram.org/bot${BOT_TOKEN}/getGameHighScores`, {
+            user_id,
+            inline_message_id
+        });
+        console.log("✅ 获取排行榜数据:", response.data);
+        res.json(response.data);
+    } catch (error) {
+        console.error("❌ 获取排行榜失败:", error.response ? error.response.data : error.message);
+        res.status(500).json({ error: "Failed to get highscores" });
+    }
+});
+
+
 // ✅ 监听 `/`，避免 Vercel 404 错误
 app.get('/', (req, res) => {
     res.send("🚀 Telegram Bot Server is running!");
